@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 interface CarouselData {
   id: number;
@@ -11,48 +11,73 @@ interface CarouselProps {
 }
 
 const Carousel: React.FC<CarouselProps> = ({ data }) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  const handleNext = () => {
-    if (currentIndex + 3 < data.length) {
-      setCurrentIndex(currentIndex + 3);
+  const cardsToShow = 3; 
+  const cardWidth = 360;
+
+  const nextSlide = () => {
+    if (sliderRef.current) {
+      const newIndex = Math.min(activeIndex + 3, data.length - cardsToShow);
+      setActiveIndex(newIndex);
+      sliderRef.current.scrollTo({
+        left: cardWidth * newIndex,
+        behavior: "smooth",
+      });
     }
   };
 
-  const handlePrev = () => {
-    if (currentIndex - 3 >= 0) {
-      setCurrentIndex(currentIndex - 3);
+  const previousSlide = () => {
+    if (sliderRef.current) {
+      const newIndex = Math.max(activeIndex - 3, 0);
+      setActiveIndex(newIndex);
+      sliderRef.current.scrollTo({
+        left: cardWidth * newIndex,
+        behavior: "smooth",
+      });
     }
   };
 
   return (
-    <div className="w-full max-w-8xl mx-auto py-10 px-10">
-      <div className="flex overflow-hidden">
-        <div className="flex transition-transform duration-300" style={{ transform: `translateX(-${(currentIndex / 3) * 100}%)` }}>
-          {data.map((item, index) => (
-            <div key={index} className="flex-none w-1/3 px-4 py-2">
-              <img src="https://via.placeholder.com/600x400" alt="Card Image" className="w-full h-24 object-cover" />
-              <div className="p-4">
-                <h3 className="text-xl font-semibold mb-2 line-clamp-2">{item.headline}</h3>
-                <p className="text-gray-600 line-clamp-2">{item.intro}</p>
+    <div className="max-w-7xl px-10">
+      <div ref={sliderRef} className="overflow-hidden w-full mx-auto">
+        <div className="flex gap-4 transition-transform duration-500 ease-in-out" style={{ width: `${cardWidth * data.length}px` }}>
+          {data.map((item: CarouselData, index: number) => (
+            <div
+              key={index}
+              className="border-[1px] border-solid w-[360px] shrink-0"
+            >
+              <div className="w-[360px] h-[240px]">
+                <img
+                  className="w-full h-full object-cover"
+                  src="https://via.placeholder.com/600x400"
+                  alt=""
+                />
               </div>
+             <div className="px-4 py-4">
+              <div className="line-clamp-1">
+                  <h1 className="font-bold text-xl">{item.headline}</h1>
+                </div>
+                <div className="line-clamp-2">
+                  <p>{item.intro}</p>
+                </div>
+             </div>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="mt-4 flex justify-between">
+      <div className="flex justify-between px-4 py-10">
         <button
-          onClick={handlePrev}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg disabled:bg-gray-400"
-          disabled={currentIndex === 0}
+          onClick={previousSlide}
+          className="text-2xl px-4 py-4 bg-blue-200"
         >
           Previous
         </button>
         <button
-          onClick={handleNext}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg disabled:bg-gray-400"
-          disabled={currentIndex + 3 >= data.length}
+          onClick={nextSlide}
+          className="text-2xl px-4 py-4 bg-blue-200"
         >
           Next
         </button>
